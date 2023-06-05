@@ -10,5 +10,9 @@ fun <T, R> Flow<Collection<T>>.mapElements(
     transform: (T) -> R,
 ): Flow<List<R>> = map { collection -> collection.map(transform) }
 
+fun <T> Flow<Collection<T>>.filterElements(
+    predicate: (T) -> Boolean,
+): Flow<List<T>> = map { collection -> collection.filter(predicate) }
+
 inline fun <reified T> Flow<List<Flow<T>>>.combineLatest(): Flow<List<T>> =
     flatMapLatest { combine(it) { it.toList() } }

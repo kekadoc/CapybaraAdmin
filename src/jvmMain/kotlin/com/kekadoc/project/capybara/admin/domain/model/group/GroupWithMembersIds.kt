@@ -1,4 +1,4 @@
-package com.kekadoc.project.capybara.domain.model.group
+package com.kekadoc.project.capybara.admin.domain.model.group
 
 import com.kekadoc.project.capybara.admin.domain.model.Identifier
 

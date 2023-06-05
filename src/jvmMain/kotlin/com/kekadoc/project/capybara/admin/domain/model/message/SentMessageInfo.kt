@@ -1,9 +1,5 @@
 package com.kekadoc.project.capybara.admin.domain.model.message
 
-import com.kekadoc.project.capybara.domain.model.message.MessageAction
-import com.kekadoc.project.capybara.domain.model.message.MessageNotifications
-import com.kekadoc.project.capybara.domain.model.message.MessageStatus
-import com.kekadoc.project.capybara.domain.model.message.MessageType
 import java.time.ZonedDateTime
 
 data class SentMessageInfo(

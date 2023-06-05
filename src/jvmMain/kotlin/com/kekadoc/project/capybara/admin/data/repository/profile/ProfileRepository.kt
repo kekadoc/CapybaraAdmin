@@ -1,19 +1,32 @@
 package com.kekadoc.project.capybara.admin.data.repository.profile
 
+import com.kekadoc.project.capybara.admin.data.source.remote.model.profile.ProfileDto
 import com.kekadoc.project.capybara.admin.domain.model.Identifier
-import com.kekadoc.project.capybara.admin.domain.model.profile.AuthorizedProfile
 import com.kekadoc.project.capybara.admin.domain.model.Range
-import com.kekadoc.project.capybara.admin.domain.model.profile.Communication
-import com.kekadoc.project.capybara.admin.domain.model.profile.Profile
-import com.kekadoc.project.capybara.server.domain.model.UserAccessToGroup
-import com.kekadoc.project.capybara.server.domain.model.UserAccessToUser
+import com.kekadoc.project.capybara.admin.domain.model.UserAccessToGroup
+import com.kekadoc.project.capybara.admin.domain.model.UserAccessToUser
+import com.kekadoc.project.capybara.admin.domain.model.profile.*
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
 
+    val currentProfile: Flow<AuthorizedProfile?>
+
     fun getProfile(): Flow<AuthorizedProfile>
 
-    fun getProfiles(range: Range): Flow<Profile>
+    fun getProfiles(ids: List<Identifier>): Flow<List<ShortProfile>>
+
+    fun getProfiles(range: Range): Flow<List<ExtendedProfile>>
+
+    fun getUserAccessToUser(
+        fromProfileId: Identifier,
+        toProfileId: Identifier,
+    ): Flow<UserAccessToUser>
+
+    fun getUserAccessToGroup(
+        fromProfileId: Identifier,
+        toGroupId: Identifier,
+    ): Flow<UserAccessToGroup>
 
     fun updateProfilePersonal(
         profileId: Identifier,
@@ -21,34 +34,37 @@ interface ProfileRepository {
         surname: String,
         patronymic: String,
         about: String?,
-    ): Flow<Profile>
+    ): Flow<ExtendedProfile>
 
-    fun updateProfileType(profileId: Identifier, type: Profile.Type): Flow<Profile>
+    fun updateProfileType(profileId: Identifier, type: ExtendedProfile.Type): Flow<ExtendedProfile>
 
-    fun updateProfileStatus(profileId: Identifier, status: Profile.Status): Flow<Profile>
+    fun updateProfileStatus(profileId: Identifier, status: ExtendedProfile.Status): Flow<ExtendedProfile>
 
-    fun updateProfileAccessToProfile(
-        fromProfileId: Identifier,
-        toProfileId: Identifier,
+    fun updateUserAccessToUser(
+        fromUserId: Identifier,
+        toUserId: Identifier,
         access: UserAccessToUser.Updater,
-    ): Flow<Profile>
+    ): Flow<UserAccessToUser>
 
-    fun updateProfileAccessToGroup(
-        fromProfileId: Identifier,
-        toProfileId: Identifier,
+    fun updateUserAccessToGroup(
+        fromUserId: Identifier,
+        toGroupId: Identifier,
         access: UserAccessToGroup.Updater,
-    ): Flow<Profile>
+    ): Flow<UserAccessToGroup>
 
-    fun updateProfileCommunication(profileId: Identifier, communication: Communication): Flow<Profile>
+    fun updateProfileCommunication(profileId: Identifier, communication: Communication): Flow<ExtendedProfile>
 
     fun deleteProfile(profileId: Identifier): Flow<Unit>
 
     fun createProfile(
-        login: String,
+        type: ExtendedProfile.Type,
         name: String,
         surname: String,
         patronymic: String,
         about: String?,
-    ): Flow<Profile>
+        emailForInvite: String? = null,
+        login: String? = null,
+        password: String? = null,
+    ): Flow<CreateProfileResponse>
 
 }

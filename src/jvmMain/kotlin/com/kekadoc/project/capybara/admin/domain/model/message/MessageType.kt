@@ -1,6 +1,7 @@
-package com.kekadoc.project.capybara.domain.model.message
+package com.kekadoc.project.capybara.admin.domain.model.message
 
 enum class MessageType {
+    DEFAULT,
     INFO,
-    VOTE
+    VOTE,
 }

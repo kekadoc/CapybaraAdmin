@@ -3,8 +3,8 @@ package com.kekadoc.project.capybara.admin.data.repository.messages
 import com.kekadoc.project.capybara.admin.domain.model.Identifier
 import com.kekadoc.project.capybara.admin.domain.model.Range
 import com.kekadoc.project.capybara.admin.domain.model.message.SentMessagePreview
-import com.kekadoc.project.capybara.server.domain.model.message.MessageNotifications
-import com.kekadoc.project.capybara.server.domain.model.message.MessageType
+import com.kekadoc.project.capybara.admin.domain.model.message.MessageNotifications
+import com.kekadoc.project.capybara.admin.domain.model.message.MessageType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 

@@ -1,5 +1,6 @@
 package com.kekadoc.project.capybara.admin.common.viewmodel
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -15,7 +16,11 @@ abstract class ViewModel<ViewState : Any>(initialState: ViewState) : ContainerHo
     override val container: Container<ViewState, Nothing> = RealContainer(
         initialState = initialState,
         parentScope = coroutineScope,
-        settings = RealSettings(),
+        settings = RealSettings(
+            exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                throwable.printStackTrace()
+            }
+        ),
     )
 
 }

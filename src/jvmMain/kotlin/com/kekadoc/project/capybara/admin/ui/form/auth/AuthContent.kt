@@ -17,8 +17,10 @@ import androidx.compose.ui.unit.dp
 import com.kekadoc.project.capybara.admin.common.viewmodel.ViewModel
 import com.kekadoc.project.capybara.admin.common.viewmodel.viewModel
 import com.kekadoc.project.capybara.admin.data.repository.auth.AuthRepository
+import com.kekadoc.project.capybara.admin.data.repository.profile.ProfileRepository
 import com.kekadoc.project.capybara.admin.ui.resource.text.text
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.Serializable
 import org.orbitmvi.orbit.syntax.simple.blockingIntent
 import org.orbitmvi.orbit.syntax.simple.intent
@@ -31,7 +33,8 @@ data class AuthViewState(
 )
 
 class AuthViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val profileRepository: ProfileRepository,
 ) : ViewModel<AuthViewState>(AuthViewState()) {
 
     @Serializable
@@ -58,23 +61,8 @@ class AuthViewModel(
             .collect {
                 println(it)
             }
+        profileRepository.getProfile().collect()
         reduce { state.copy(isLoading = false) }
-    }
-
-    fun test() {
-
-
-//        GlobalScope.launch {
-//            val response = client.post("http://127.0.0.1:8080/api/v1/auth") {
-//                contentType(ContentType.Application.Json)
-//                setBody(AuthRequestDto("OlegAdmin", "123"))
-//                headers {
-//                    append("ApiKey", "ff9de788-c243-4350-9ed0-7bfb847c4c1b")
-//                }
-//            }
-//
-//            println(response.bodyAsText())
-//        }
     }
 
 }

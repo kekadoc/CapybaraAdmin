@@ -1,4 +1,4 @@
-package com.kekadoc.project.capybara.server.routing.api.auth.model
+package com.kekadoc.project.capybara.admin.data.source.remote.model.auth
 
 import kotlinx.serialization.Serializable
 

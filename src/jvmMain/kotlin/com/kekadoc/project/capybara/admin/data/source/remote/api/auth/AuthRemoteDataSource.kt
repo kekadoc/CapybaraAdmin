@@ -2,7 +2,7 @@ package com.kekadoc.project.capybara.admin.data.source.remote.api.auth
 
 import com.kekadoc.project.capybara.admin.domain.model.Identifier
 import com.kekadoc.project.capybara.admin.domain.model.auth.Tokens
-import com.kekadoc.project.capybara.admin.domain.server.model.auth.registration.RegistrationRequestInfo
+import com.kekadoc.project.capybara.admin.domain.model.auth.registration.RegistrationRequestInfo
 
 interface AuthRemoteDataSource {
 

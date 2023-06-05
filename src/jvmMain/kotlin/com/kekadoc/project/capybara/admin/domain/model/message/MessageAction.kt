@@ -1,4 +1,4 @@
-package com.kekadoc.project.capybara.domain.model.message
+package com.kekadoc.project.capybara.admin.domain.model.message
 
 data class MessageAction(
     val id: Long,

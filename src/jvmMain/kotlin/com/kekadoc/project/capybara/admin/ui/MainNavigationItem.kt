@@ -16,8 +16,7 @@ sealed interface MainMenu {
 enum class MainNavigationItem(override val subMenu: SubMenu) : MainMenu.Item {
 
     USERS(UsersNavigation),
-    GROUPS(GroupsNavigation),
-    MESSAGES(MessagesNavigation);
+    GROUPS(GroupsNavigation);
 
     companion object : MainMenu {
 
@@ -41,13 +40,14 @@ enum class UsersNavigation : SubMenu.Item {
 
     GET_ALL,//Удаление, редактирование, Доступы к профилям и группам
     CREATE,//Парсинг файла
+    ACCESS,//Парсинг файла
     REGISTRATIONS;
 
     companion object : SubMenu {
 
         override val all: List<SubMenu.Item> = UsersNavigation.values().toList()
 
-        override val defaultItem: SubMenu.Item = GET_ALL
+        override val defaultItem: SubMenu.Item = ACCESS
 
     }
 
@@ -66,20 +66,4 @@ enum class GroupsNavigation : SubMenu.Item {
         override val defaultItem: SubMenu.Item = GET_ALL
 
     }
-}
-
-enum class MessagesNavigation : SubMenu.Item {
-
-    SENT,
-    GET_ALL, //  Удаление
-    CREATE; //  Парсинг файла
-
-    companion object : SubMenu {
-
-        override val all: List<SubMenu.Item> = MessagesNavigation.values().toList()
-
-        override val defaultItem: SubMenu.Item = GET_ALL
-
-    }
-
 }

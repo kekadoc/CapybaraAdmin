@@ -1,59 +1,74 @@
 package com.kekadoc.project.capybara.admin.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CircleNotifications
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.SupervisedUserCircle
 import androidx.compose.material.icons.outlined.AppRegistration
 import androidx.compose.material.icons.outlined.Ballot
 import androidx.compose.material.icons.outlined.Create
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.kekadoc.project.capybara.admin.common.viewmodel.ViewModel
 import com.kekadoc.project.capybara.admin.common.viewmodel.viewModel
+import com.kekadoc.project.capybara.admin.data.repository.profile.ProfileRepository
+import com.kekadoc.project.capybara.admin.domain.model.profile.AuthorizedProfile
 import com.kekadoc.project.capybara.admin.ui.form.auth.AuthContent
+import com.kekadoc.project.capybara.admin.ui.form.common.LocalSanckBarHostState
 import com.kekadoc.project.capybara.admin.ui.form.groups.AllGroupsForm
 import com.kekadoc.project.capybara.admin.ui.form.groups.CreateGroupsForm
-import com.kekadoc.project.capybara.admin.ui.form.messages.AllMessagesForm
-import com.kekadoc.project.capybara.admin.ui.form.messages.CreateMessageForm
-import com.kekadoc.project.capybara.admin.ui.form.messages.SentMessagesForm
 import com.kekadoc.project.capybara.admin.ui.form.users.AllUsersForm
 import com.kekadoc.project.capybara.admin.ui.form.users.CreateUserForm
 import com.kekadoc.project.capybara.admin.ui.form.users.RegistrationsUserForm
+import com.kekadoc.project.capybara.admin.ui.form.users.UserAccessForm
+import kotlinx.coroutines.flow.catch
 import org.orbitmvi.orbit.syntax.simple.intent
 import org.orbitmvi.orbit.syntax.simple.reduce
 
 data class MainViewState(
-    val selectedMenuItem: MainMenu.Item? = null,
-    val selectedSubMenu: SubMenu? = null,
-    val selectedSubMenuItem: SubMenu.Item? = null,
+    val isLoading: Boolean = true,
+    val selectedMenuItem: MainMenu.Item = MainNavigationItem.USERS,
+    val selectedSubMenu: SubMenu = selectedMenuItem.subMenu,
+    val selectedSubMenuItem: SubMenu.Item = selectedSubMenu.defaultItem,
+    val authorizedProfile: AuthorizedProfile? = null,
 )
 
-class AdminAppViewModel : ViewModel<MainViewState>(MainViewState()) {
+class AdminAppViewModel(
+    private val profileRepository: ProfileRepository,
+) : ViewModel<MainViewState>(MainViewState()) {
 
     init {
-        setMenuItem(MainNavigationItem.USERS)
+        intent {
+            profileRepository.currentProfile
+                .catch { emit(null) }
+                .collect {
+                    reduce { state.copy(isLoading = false, authorizedProfile = it) }
+                }
+        }
     }
 
-    fun setMenuItem(item: MainMenu.Item?) = intent {
+    fun setMenuItem(item: MainMenu.Item) = intent {
+        if (state.selectedMenuItem == item) return@intent
         reduce {
             state.copy(
                 selectedMenuItem = item,
-                selectedSubMenu = item?.subMenu,
-                selectedSubMenuItem = item?.subMenu?.defaultItem,
+                selectedSubMenu = item.subMenu,
+                selectedSubMenuItem = item.subMenu.defaultItem,
             )
         }
     }
 
-    fun setSubMenuItem(item: SubMenu.Item?) = intent {
+    fun setSubMenuItem(item: SubMenu.Item) = intent {
+        if (state.selectedSubMenuItem == item) return@intent
         reduce {
             state.copy(
                 selectedSubMenuItem = item,
@@ -66,21 +81,50 @@ class AdminAppViewModel : ViewModel<MainViewState>(MainViewState()) {
 @Composable
 fun AdminApp(viewModel: AdminAppViewModel = viewModel()) {
     val viewState by viewModel.container.stateFlow.collectAsState()
-    val (selectedMenuItem, selectedSubMenu, selectedSubMenuItem) = viewState
-    Box(
-        Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopStart,
-    ) {
-        if (selectedMenuItem == null || selectedSubMenu == null || selectedSubMenuItem == null) {
-            AuthContent()
-        } else {
-            AdminContent(
-                selectedMenuItem = selectedMenuItem,
-                selectedSubMenu = selectedSubMenu,
-                selectedSubMenuItem = selectedSubMenuItem,
-                onMenuSelected = viewModel::setMenuItem,
-                onSubMenuSelected = viewModel::setSubMenuItem,
+    val (isLoading, selectedMenuItem, selectedSubMenu, selectedSubMenuItem, profile) = viewState
+    val scaffoldState = rememberScaffoldState()
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        scaffoldState = scaffoldState,
+        snackbarHost = { state ->
+            SnackbarHost(
+                hostState = state,
+                modifier = Modifier.wrapContentWidth(),
+                snackbar = { snackbarData ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.BottomCenter,
+                    ) {
+                        Snackbar(
+                            snackbarData = snackbarData,
+                            modifier = Modifier.width(200.dp),
+                        )
+                    }
+                }
             )
+        },
+    ) {
+        CompositionLocalProvider(
+            LocalSanckBarHostState provides scaffoldState.snackbarHostState,
+        ) {
+            Box(
+                Modifier.fillMaxSize().padding(it),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator()
+                } else if (profile == null) {
+                    AuthContent()
+                } else {
+                    AdminContent(
+                        selectedMenuItem = selectedMenuItem,
+                        selectedSubMenu = selectedSubMenu,
+                        selectedSubMenuItem = selectedSubMenuItem,
+                        onMenuSelected = viewModel::setMenuItem,
+                        onSubMenuSelected = viewModel::setSubMenuItem,
+                    )
+                }
+            }
         }
     }
 }
@@ -103,7 +147,7 @@ private fun AdminContent(
             onSelected = onMenuSelected,
         )
         SubMenu(
-            modifier = Modifier.fillMaxWidth(0.3f),
+            modifier = Modifier.width(200.dp),
             menu = selectedSubMenu,
             selectedItem = selectedSubMenuItem,
             onSelected = onSubMenuSelected,
@@ -115,11 +159,9 @@ private fun AdminContent(
             when (selectedSubMenuItem) {
                 GroupsNavigation.GET_ALL -> AllGroupsForm()
                 GroupsNavigation.CREATE -> CreateGroupsForm()
-                MessagesNavigation.SENT -> SentMessagesForm()
-                MessagesNavigation.GET_ALL -> AllMessagesForm()
-                MessagesNavigation.CREATE -> CreateMessageForm()
                 UsersNavigation.GET_ALL -> AllUsersForm()
                 UsersNavigation.CREATE -> CreateUserForm()
+                UsersNavigation.ACCESS -> UserAccessForm()
                 UsersNavigation.REGISTRATIONS -> RegistrationsUserForm()
             }
         }
@@ -163,18 +205,6 @@ private fun MainMenu(
                             },
                         )
                     }
-                    MainNavigationItem.MESSAGES -> {
-                        NavigationRailItem(
-                            selected = selectedMenu.hashCode() == MainNavigationItem.MESSAGES.hashCode(),
-                            onClick = { onSelected(MainNavigationItem.MESSAGES) },
-                            icon = {
-                                Icon(
-                                    imageVector = Icons.Default.CircleNotifications,
-                                    contentDescription = null
-                                )
-                            },
-                        )
-                    }
                 }
             }
         }
@@ -198,9 +228,6 @@ private fun SubMenu(
             val header: String = when (menu) {
                 is GroupsNavigation.Companion -> {
                     "Группы"
-                }
-                is MessagesNavigation.Companion -> {
-                    "Информирования"
                 }
                 is UsersNavigation.Companion -> {
                     "Пользователи"
@@ -227,33 +254,6 @@ private fun SubMenu(
                         SubMenuItemComponent(
                             enabled = true,
                             selected = selectedItem.hashCode() == GroupsNavigation.CREATE.hashCode(),
-                            icon = Icons.Outlined.Create,
-                            text = "Создать",
-                            onClick = { onSelected.invoke(item) }
-                        )
-                    }
-                    MessagesNavigation.SENT -> {
-                        SubMenuItemComponent(
-                            enabled = true,
-                            selected = selectedItem.hashCode() == MessagesNavigation.SENT.hashCode(),
-                            icon = Icons.Outlined.Send,
-                            text = "Отправленные",
-                            onClick = { onSelected.invoke(item) }
-                        )
-                    }
-                    MessagesNavigation.GET_ALL -> {
-                        SubMenuItemComponent(
-                            enabled = true,
-                            selected = selectedItem.hashCode() == MessagesNavigation.GET_ALL.hashCode(),
-                            icon = Icons.Outlined.Ballot,
-                            text = "Все",
-                            onClick = { onSelected.invoke(item) }
-                        )
-                    }
-                    MessagesNavigation.CREATE -> {
-                        SubMenuItemComponent(
-                            enabled = true,
-                            selected = selectedItem.hashCode() == MessagesNavigation.CREATE.hashCode(),
                             icon = Icons.Outlined.Create,
                             text = "Создать",
                             onClick = { onSelected.invoke(item) }
@@ -286,6 +286,15 @@ private fun SubMenu(
                             onClick = { onSelected.invoke(item) }
                         )
                     }
+                    UsersNavigation.ACCESS -> {
+                        SubMenuItemComponent(
+                            enabled = true,
+                            selected = selectedItem.hashCode() == UsersNavigation.ACCESS.hashCode(),
+                            icon = Icons.Outlined.AppRegistration,
+                            text = "Доступы",
+                            onClick = { onSelected.invoke(item) }
+                        )
+                    }
                 }
             }
         }
@@ -304,6 +313,14 @@ private fun SubMenuItemComponent(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
         enabled = enabled,
+        border = BorderStroke(
+            width = 4.dp,
+            color = if (selected) {
+                MaterialTheme.colors.onSurface.copy(alpha = 0.33f)
+            } else {
+                Color.Transparent
+            }
+        )
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
