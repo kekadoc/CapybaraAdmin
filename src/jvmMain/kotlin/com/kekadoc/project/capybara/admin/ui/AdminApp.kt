@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.SupervisedUserCircle
 import androidx.compose.material.icons.outlined.AppRegistration
 import androidx.compose.material.icons.outlined.Ballot
 import androidx.compose.material.icons.outlined.Create
+import androidx.compose.material.icons.outlined.SettingsAccessibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -290,7 +291,7 @@ private fun SubMenu(
                         SubMenuItemComponent(
                             enabled = true,
                             selected = selectedItem.hashCode() == UsersNavigation.ACCESS.hashCode(),
-                            icon = Icons.Outlined.AppRegistration,
+                            icon = Icons.Outlined.SettingsAccessibility,
                             text = "Доступы",
                             onClick = { onSelected.invoke(item) }
                         )

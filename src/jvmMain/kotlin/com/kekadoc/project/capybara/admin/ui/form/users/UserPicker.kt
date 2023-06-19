@@ -131,7 +131,6 @@ fun UserPickerDialog(
     val viewModel: UserPickerViewModel = viewModel()
     LaunchedEffect(Unit) { viewModel.setExcludeIds(excludeUserIds) }
     val viewState by viewModel.container.stateFlow.collectAsState()
-    println("_______$excludeUserIds")
     Dialog(
         onCloseRequest = onCloseRequest,
         state = rememberDialogState(
@@ -141,6 +140,7 @@ fun UserPickerDialog(
             )
         ),
         resizable = false,
+        title = "Выбор пользователя",
     ) {
         Box(
             modifier = Modifier.padding(16.dp),

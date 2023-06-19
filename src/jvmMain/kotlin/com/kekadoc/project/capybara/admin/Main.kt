@@ -18,6 +18,7 @@ fun main() = application {
             width = 1280.dp,
             height = 720.dp,
         ),
+        title = "Администрирование"
     ) {
         AppTheme {
             AdminApp()

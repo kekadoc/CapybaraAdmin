@@ -97,6 +97,7 @@ fun GroupPickerDialog(
             )
         ),
         resizable = false,
+        title = "Выбор группы",
     ) {
         Box(
             modifier = Modifier.padding(16.dp),
