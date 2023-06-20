@@ -26,7 +26,7 @@ data class ExtendedProfileDto(
     @SerialName("about")
     val about: String?,
     @SerialName("communications")
-    val communications: Map<String, Pair<String, Boolean?>>,
+    val communications: List<CommunicationDto>,
     @SerialName("group_ids")
     val groupIds: List<@Contextual Identifier>,
 )

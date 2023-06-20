@@ -18,8 +18,8 @@ object ExtendedProfileDtoFactory : Factory.Single<ExtendedProfileDto, ExtendedPr
         surname = value.surname,
         patronymic = value.patronymic,
         about = value.about,
-        communications = value.communications.map {
-            Communication(it.key, it.value.first, it.value.second)
+        communications = value.communications.map { (key, value, approved) ->
+            Communication(type = key, value = value, approved = approved)
         },
         groupIds = value.groupIds,
     )
