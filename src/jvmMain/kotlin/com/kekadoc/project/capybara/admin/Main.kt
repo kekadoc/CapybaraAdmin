@@ -8,7 +8,7 @@ import com.kekadoc.project.capybara.admin.ui.AdminApp
 import com.kekadoc.project.capybara.admin.ui.theme.AppTheme
 
 fun main() = application {
-    System.setProperty("skiko.renderApi", "OPENGL")
+    //System.setProperty("skiko.renderApi", "OPENGL")
     Thread.setDefaultUncaughtExceptionHandler { t, e -> e.printStackTrace() }
     DI.init()
     Window(

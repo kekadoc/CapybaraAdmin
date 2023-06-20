@@ -172,7 +172,7 @@ fun UserPickerDialog(
                 )
                 if (viewState.isLoading) {
                    Box(
-                       Modifier.weight(1f),
+                       modifier = Modifier.fillMaxSize(),
                        contentAlignment = Alignment.Center,
                    ) {
                        CircularProgressIndicator(

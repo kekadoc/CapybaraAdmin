@@ -1,16 +1,12 @@
 package com.kekadoc.project.capybara.admin.data.source.remote.api.auth
 
-import com.kekadoc.project.capybara.admin.data.source.remote.model.auth.AuthorizationResponse
+import com.kekadoc.project.capybara.admin.data.source.remote.api.bodyOrError
+import com.kekadoc.project.capybara.admin.data.source.remote.model.auth.*
 import com.kekadoc.project.capybara.admin.domain.model.Identifier
 import com.kekadoc.project.capybara.admin.domain.model.auth.Tokens
 import com.kekadoc.project.capybara.admin.domain.model.auth.registration.RegistrationRequestInfo
-import com.kekadoc.project.capybara.admin.data.source.remote.model.auth.AuthorizationRequest
-import com.kekadoc.project.capybara.admin.data.source.remote.model.auth.GetAllRegistrationRequestsResponseDto
-import com.kekadoc.project.capybara.admin.data.source.remote.model.auth.RegistrationStatusDto
 import com.kekadoc.project.capybara.admin.domain.model.auth.registration.RegistrationStatus
-import com.kekadoc.project.capybara.admin.data.source.remote.model.auth.UpdateRegistrationStatusRequestDto
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 
@@ -23,14 +19,17 @@ class AuthRemoteDataSourceImpl(
             contentType(ContentType.Application.Json)
             setBody(AuthorizationRequest(login, password))
             this.method = HttpMethod.Post
-        }.body<AuthorizationResponse>().let {
-            Tokens(it.accessToken, it.refreshToken)
+        }.bodyOrError<AuthorizationResponse>().let { response ->
+            Tokens(
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken,
+            )
         }
     }
 
     override suspend fun registrationRequests(): List<RegistrationRequestInfo> {
         return client.get("auth/registration/all")
-            .body<GetAllRegistrationRequestsResponseDto>()
+            .bodyOrError<GetAllRegistrationRequestsResponseDto>()
             .let {
                 it.items.map { dto ->
                     RegistrationRequestInfo(

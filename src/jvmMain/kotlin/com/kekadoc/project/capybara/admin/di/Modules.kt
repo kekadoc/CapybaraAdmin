@@ -33,7 +33,7 @@ val remoteDataSourcesModule = module {
     single<HttpClient> {
         HttpClient(OkHttp) {
             defaultRequest {
-                url("http://127.0.0.1:8080/api/v1/")
+                url("http://109.196.136.40:8600/api/v1/")
                 contentType(ContentType.Application.Json)
                 headers {
                     append("ApiKey", "ff9de788-c243-4350-9ed0-7bfb847c4c1b")
@@ -112,6 +112,7 @@ val viewModelsModule = module {
 
     single<AdminAppViewModel> {
         AdminAppViewModel(
+            authRepository = get(),
             profileRepository = get(),
         )
     }

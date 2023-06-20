@@ -47,7 +47,7 @@ enum class UsersNavigation : SubMenu.Item {
 
         override val all: List<SubMenu.Item> = UsersNavigation.values().toList()
 
-        override val defaultItem: SubMenu.Item = ACCESS
+        override val defaultItem: SubMenu.Item = GET_ALL
 
     }
 

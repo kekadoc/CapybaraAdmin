@@ -1,5 +1,6 @@
 package com.kekadoc.project.capybara.admin.data.repository.profile
 
+import com.kekadoc.project.capybara.admin.data.source.remote.api.UnauthorizedException
 import com.kekadoc.project.capybara.admin.data.source.remote.api.profile.ProfileRemoteDataSource
 import com.kekadoc.project.capybara.admin.domain.model.Identifier
 import com.kekadoc.project.capybara.admin.domain.model.Range
@@ -9,25 +10,39 @@ import com.kekadoc.project.capybara.admin.domain.model.profile.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.*
 
+sealed class UserStatus {
+    data class Authorized(val user: AuthorizedProfile) : UserStatus()
+    object Unauthorized : UserStatus()
+    object Unknown : UserStatus()
+}
+
 class ProfileRepositoryImpl(
     private val remoteDataSource: ProfileRemoteDataSource,
 ) : ProfileRepository {
 
-    private val _currentProfile = MutableStateFlow<AuthorizedProfile?>(null)
+    private val _currentProfile = MutableStateFlow<UserStatus>(UserStatus.Unknown)
 
-    override val currentProfile: Flow<AuthorizedProfile?> = getProfile()
+
+    override val currentProfile: Flow<UserStatus> = flowOf(UserStatus.Unknown)
+        .flatMapLatest { getProfile() }
         .stateIn(
             scope = GlobalScope,
             started = SharingStarted.Lazily,
             initialValue = null,
         )
-        .onEach { _currentProfile.emit(it) }
         .flatMapConcat { _currentProfile }
 
     override fun getProfile(): Flow<AuthorizedProfile> = flowOf {
         remoteDataSource.getProfile()
     }
-        .onEach { _currentProfile.emit(it) }
+        .onEach { _currentProfile.emit(UserStatus.Authorized(it)) }
+        .catch {
+            if (it is UnauthorizedException) {
+                _currentProfile.emit(UserStatus.Unauthorized)
+            } else {
+                _currentProfile.emit(UserStatus.Unknown)
+            }
+        }
 
     override fun getProfiles(ids: List<Identifier>): Flow<List<ShortProfile>> = flowOf {
         remoteDataSource.getProfiles(ids)

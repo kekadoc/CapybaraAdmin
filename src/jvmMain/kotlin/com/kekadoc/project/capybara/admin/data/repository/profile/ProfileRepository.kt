@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
 
-    val currentProfile: Flow<AuthorizedProfile?>
+    val currentProfile: Flow<UserStatus>
 
     fun getProfile(): Flow<AuthorizedProfile>
 

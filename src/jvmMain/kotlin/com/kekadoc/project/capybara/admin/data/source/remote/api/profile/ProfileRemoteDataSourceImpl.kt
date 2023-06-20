@@ -1,5 +1,6 @@
 package com.kekadoc.project.capybara.admin.data.source.remote.api.profile
 
+import com.kekadoc.project.capybara.admin.data.source.remote.api.bodyOrError
 import com.kekadoc.project.capybara.admin.data.source.remote.model.RangeDto
 import com.kekadoc.project.capybara.admin.data.source.remote.model.factory.ExtendedProfileDtoFactory
 import com.kekadoc.project.capybara.admin.data.source.remote.model.profile.*
@@ -9,7 +10,6 @@ import com.kekadoc.project.capybara.admin.domain.model.UserAccessToGroup
 import com.kekadoc.project.capybara.admin.domain.model.UserAccessToUser
 import com.kekadoc.project.capybara.admin.domain.model.profile.*
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 
 class ProfileRemoteDataSourceImpl(
@@ -18,7 +18,7 @@ class ProfileRemoteDataSourceImpl(
 
     override suspend fun getProfile(): AuthorizedProfile {
         return client.get("profile")
-            .body<GetExtendedProfileResponseDto>()
+            .bodyOrError<GetExtendedProfileResponseDto>()
             .profile
             .let(ExtendedProfileDtoFactory::create)
             .let(::AuthorizedProfile)
@@ -33,7 +33,7 @@ class ProfileRemoteDataSourceImpl(
                     query = range.query,
                 )
             )
-        }.body<GetFullProfileListResponseDto>()
+        }.bodyOrError<GetFullProfileListResponseDto>()
             .profiles
             .map(ExtendedProfileDtoFactory::create)
     }
@@ -43,7 +43,7 @@ class ProfileRemoteDataSourceImpl(
             setBody(
                 GetProfileListRequestDto(ids = ids)
             )
-        }.body<GetProfileListResponseDto>()
+        }.bodyOrError<GetProfileListResponseDto>()
             .profiles
             .map {
                 ShortProfile(
@@ -72,7 +72,7 @@ class ProfileRemoteDataSourceImpl(
                     about = about,
                 )
             )
-        }.body<UpdateProfileResponseDto>()
+        }.bodyOrError<UpdateProfileResponseDto>()
             .profile
             .let(ExtendedProfileDtoFactory::create)
     }
@@ -87,7 +87,7 @@ class ProfileRemoteDataSourceImpl(
                     type = ProfileTypeDto.valueOf(type.name)
                 )
             )
-        }.body<UpdateProfileTypeResponseDto>()
+        }.bodyOrError<UpdateProfileTypeResponseDto>()
             .profile
             .let(ExtendedProfileDtoFactory::create)
     }
@@ -102,7 +102,7 @@ class ProfileRemoteDataSourceImpl(
                     status = status.name,
                 )
             )
-        }.body<UpdateProfileStatusResponseDto>()
+        }.bodyOrError<UpdateProfileStatusResponseDto>()
             .profile
             .let(ExtendedProfileDtoFactory::create)
     }
@@ -120,7 +120,7 @@ class ProfileRemoteDataSourceImpl(
                     contactInfo = access.contactInfo,
                 )
             )
-        }.body<UpdateAccessUserResponseDto>()
+        }.bodyOrError<UpdateAccessUserResponseDto>()
         return UserAccessToUser(
             fromUserId = fromUserId,
             toUserId = toUserId,
@@ -135,7 +135,7 @@ class ProfileRemoteDataSourceImpl(
         toProfileId: Identifier,
     ): UserAccessToUser {
         return client.get("profile/$fromProfileId/access/user/$toProfileId")
-            .body<GetAccessUserResponseDto>()
+            .bodyOrError<GetAccessUserResponseDto>()
             .let {
                 UserAccessToUser(
                     fromUserId = fromProfileId,
@@ -152,7 +152,7 @@ class ProfileRemoteDataSourceImpl(
         toGroupId: Identifier,
     ): UserAccessToGroup {
         return client.get("profile/$fromProfileId/access/group/$toGroupId")
-            .body<GetAccessGroupResponseDto>()
+            .bodyOrError<GetAccessGroupResponseDto>()
             .let {
                 UserAccessToGroup(
                     userId = fromProfileId,
@@ -177,7 +177,7 @@ class ProfileRemoteDataSourceImpl(
                     sentNotification = access.sentNotification,
                 )
             )
-        }.body<UpdateAccessGroupResponseDto>()
+        }.bodyOrError<UpdateAccessGroupResponseDto>()
         return UserAccessToGroup(
             userId = userId,
             groupId = groupId,
@@ -221,7 +221,7 @@ class ProfileRemoteDataSourceImpl(
                     password = password,
                 )
             )
-        }.body<CreateProfileResponseDto>()
+        }.bodyOrError<CreateProfileResponseDto>()
             .let { (profile, pass) ->
                 CreateProfileResponse(
                     profile = ExtendedProfileDtoFactory.create(profile),

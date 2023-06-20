@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.SupervisedUserCircle
 import androidx.compose.material.icons.outlined.AppRegistration
 import androidx.compose.material.icons.outlined.Ballot
@@ -21,7 +22,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.kekadoc.project.capybara.admin.common.viewmodel.ViewModel
 import com.kekadoc.project.capybara.admin.common.viewmodel.viewModel
+import com.kekadoc.project.capybara.admin.data.repository.auth.AuthRepository
 import com.kekadoc.project.capybara.admin.data.repository.profile.ProfileRepository
+import com.kekadoc.project.capybara.admin.data.repository.profile.UserStatus
 import com.kekadoc.project.capybara.admin.domain.model.profile.AuthorizedProfile
 import com.kekadoc.project.capybara.admin.ui.form.auth.AuthContent
 import com.kekadoc.project.capybara.admin.ui.form.common.LocalSanckBarHostState
@@ -31,7 +34,7 @@ import com.kekadoc.project.capybara.admin.ui.form.users.AllUsersForm
 import com.kekadoc.project.capybara.admin.ui.form.users.CreateUserForm
 import com.kekadoc.project.capybara.admin.ui.form.users.RegistrationsUserForm
 import com.kekadoc.project.capybara.admin.ui.form.users.UserAccessForm
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.*
 import org.orbitmvi.orbit.syntax.simple.intent
 import org.orbitmvi.orbit.syntax.simple.reduce
 
@@ -44,16 +47,17 @@ data class MainViewState(
 )
 
 class AdminAppViewModel(
+    private val authRepository: AuthRepository,
     private val profileRepository: ProfileRepository,
 ) : ViewModel<MainViewState>(MainViewState()) {
 
     init {
         intent {
             profileRepository.currentProfile
-                .catch { emit(null) }
-                .collect {
-                    reduce { state.copy(isLoading = false, authorizedProfile = it) }
-                }
+                .onStart { reduce { state.copy(isLoading = true) } }
+                .filter { it !is UserStatus.Unknown }
+                .map { (it as? UserStatus.Authorized)?.user }
+                .collect { reduce { state.copy(isLoading = false, authorizedProfile = it) } }
         }
     }
 
@@ -75,6 +79,11 @@ class AdminAppViewModel(
                 selectedSubMenuItem = item,
             )
         }
+    }
+
+    fun logout() = intent {
+        authRepository.logout().collect()
+        profileRepository.getProfile().collect()
     }
 
 }
@@ -123,6 +132,7 @@ fun AdminApp(viewModel: AdminAppViewModel = viewModel()) {
                         selectedSubMenuItem = selectedSubMenuItem,
                         onMenuSelected = viewModel::setMenuItem,
                         onSubMenuSelected = viewModel::setSubMenuItem,
+                        onLogout = viewModel::logout,
                     )
                 }
             }
@@ -137,6 +147,7 @@ private fun AdminContent(
     selectedSubMenuItem: SubMenu.Item,
     onMenuSelected: (MainMenu.Item) -> Unit,
     onSubMenuSelected: (SubMenu.Item) -> Unit,
+    onLogout: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -146,6 +157,7 @@ private fun AdminContent(
             menu = MainNavigationItem,
             selectedMenu = selectedMenuItem,
             onSelected = onMenuSelected,
+            onLogout = onLogout,
         )
         SubMenu(
             modifier = Modifier.width(200.dp),
@@ -175,11 +187,11 @@ private fun MainMenu(
     menu: MainMenu,
     selectedMenu: MainMenu.Item,
     onSelected: (MainMenu.Item) -> Unit,
+    onLogout: () -> Unit
 ) {
     NavigationRail(
         modifier = modifier,
         content = {
-
             MainNavigationItem.values().forEach { menuItem ->
                 when (menuItem) {
                     MainNavigationItem.USERS -> {
@@ -208,6 +220,17 @@ private fun MainMenu(
                     }
                 }
             }
+            Spacer(modifier = Modifier.weight(1f))
+            NavigationRailItem(
+                selected = false,
+                onClick = { onLogout() },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = null
+                    )
+                },
+            )
         }
     )
 }
