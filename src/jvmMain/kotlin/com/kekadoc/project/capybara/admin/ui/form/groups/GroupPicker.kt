@@ -129,7 +129,7 @@ fun GroupPickerDialog(
                 )
                 if (viewState.isLoading) {
                    Box(
-                       Modifier.weight(1f),
+                       Modifier.fillMaxSize(),
                        contentAlignment = Alignment.Center,
                    ) {
                        CircularProgressIndicator(
