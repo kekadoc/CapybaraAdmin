@@ -27,8 +27,8 @@ import org.orbitmvi.orbit.syntax.simple.intent
 import org.orbitmvi.orbit.syntax.simple.reduce
 
 data class AuthViewState(
-    val login: String = "OlegAdmin",
-    val password: String = "123",
+    val login: String = "Admin",
+    val password: String = "090301",
     val isLoading: Boolean = false,
     val incorrectCred: Boolean = false,
 )
